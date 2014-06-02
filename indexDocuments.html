@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html><head>  
+    <meta http-equiv='X-UA-Compatible' content='IE=edge' />  
+    <meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/>
+    <title>Hana Hbase integration</title>  
+  
+    <script id='sap-ui-bootstrap' 
+        src="/sap/ui5/1/resources/sap-ui-core.js"
+        data-sap-ui-theme='sap_goldreflection'  
+        data-sap-ui-libs='sap.ui.commons,sap.ui.ux3,sap.ui.table'></script>   
+  
+<script>
+
+
+	  /***************************************************
+        HANA Output Table
+      ***************************************************/		 
+        var oPanel = new sap.ui.commons.Panel().setText('Documents in Hana');
+
+		var oModel = new sap.ui.model.odata.ODataModel("DOCUMENTS.xsodata/", true); 
+		
+        oTableHana = new sap.ui.table.Table("testTable",{tableId: "tableID",
+                   visibleRowCount: 5,
+                   firstVisibleRow: 3,
+                   visibleRowCountMode: sap.ui.table.VisibleRowCountMode.Fixed,
+                   rowSelectionChange: onRowSelect,
+                   selectionMode: sap.ui.table.SelectionMode.Single,
+                   selectionBehavior: sap.ui.table.SelectionBehavior.Row
+                    });
+
+          
+        oTableHana.setTitle("Documents");
+
+        oTableHana.setModel(oModel);
+		
+    	//Table Column Definitions
+    	var oMeta = oModel.getServiceMetadata();
+        var oControl;
+		for ( var i = 0; i < oMeta.dataServices.schema[0].entityType[0].property.length; i++) {
+	   		  var property = oMeta.dataServices.schema[0].entityType[0].property[i];
+	   		  
+	          oControl = new sap.ui.commons.TextField({change: updateService } ).bindProperty("value",property.name);
+	          oControl.setEditable(false);
+	          vwidth = "100px";
+	          if(property.name === 'Free_Text'){
+	        	  oControl.setEditable(true);
+	        	  vwidth = "300px";
+	          }
+	          if(property.name === 'Value'){
+	        	  oControl.setEditable(true);
+	        	  vwidth = "300px";
+	          }
+	          //if(property.nullable === 'false'){
+	        	  oTableHana.addColumn(new sap.ui.table.Column({label:new sap.ui.commons.Label({text: property.name}), template: oControl, sortProperty: property.name, filterProperty: property.name, filterOperator: sap.ui.model.FilterOperator.EQ, flexible: true, width: vwidth }));
+	          //}
+	          
+	      }	
+		
+		
+		
+		//Initially sort the table
+        var sort1 = new sap.ui.model.Sorter("Doc_Name");
+    	oTableHana.bindRows("/DOCUMENTS",sort1);
+        oTableHana.sort("Doc_Name");
+        oTableHana.setEditable(true);
+
+		oPanel.addContent(oTableHana); 
+ 
+        oPanel.placeAt("uiArea");
+
+
+	  /***************************************************
+        HADOOP HBASE Output 
+      ***************************************************/
+    
+        var oPanelHbase = new sap.ui.commons.Panel().setText('Change Log Detail in Hbase');
+      
+        
+        var oModelHbase = new sap.ui.model.json.JSONModel();
+ 
+
+        oTableHbase = new sap.ui.table.Table("testLogTable",{tableId: "tableLogID",
+                   visibleRowCount: 15,
+                   firstVisibleRow: 3,
+                   visibleRowCountMode: sap.ui.table.VisibleRowCountMode.Fixed,
+                   //rowSelectionChange: onRowSelect,    ///FFFFFFFFFFFFFFFFFFFFFFFFFFFFIIIIIIIXX
+                   selectionMode: sap.ui.table.SelectionMode.Single,
+                   selectionBehavior: sap.ui.table.SelectionBehavior.Row
+                    });
+
+        oTableHbase.setTitle("Change Log");
+
+        oTableHbase.setModel(oModelHbase);
+		 
+		 
+		 
+    	//Table Column Definitions
+        var colGby = new sap.ui.table.Column({label: new sap.ui.commons.Label({text:"Changed at"}),
+                                         template: new sap.ui.commons.TextView().bindProperty("text","timestamp"),
+                                         width: "40px",
+                                      sortProperty: "timestamp",
+                                      filterProperty: "timestamp"
+                                             });
+     oTableHbase.addColumn(colGby);
+ 
+ 
+     colGby = new sap.ui.table.Column({label: new sap.ui.commons.Label({text:"Field"}),
+                                         template: new sap.ui.commons.TextView().bindProperty("text","column"),
+                                         width: "80px",
+                                      sortProperty: "column",
+                                      filterProperty: "column"
+                                             });
+     oTableHbase.addColumn(colGby);
+ 
+     
+     colGby = new sap.ui.table.Column({label: new sap.ui.commons.Label({text:"Current Value"}),
+                                         template: new sap.ui.commons.TextView().bindProperty("text","$"),
+                                         width: "80px",
+                                      sortProperty: "$",
+                                      filterProperty: "$"
+                                             });
+      oTableHbase.addColumn(colGby);
+      
+      /*  
+      colGby = new sap.ui.table.Column({label: new sap.ui.commons.Label({text:"Prior Value"}),
+                                         template: new sap.ui.commons.TextView().bindProperty("text","PRIORVALUE"),
+                                         width: "100px",
+                                      sortProperty: "PRIORVALUE",
+                                      filterProperty: "PRIORVALUE"
+                                             });
+      oTableHbase.addColumn(colGby);
+
+      colGby = new sap.ui.table.Column({label: new sap.ui.commons.Label({text:"Comment"}),
+                                         template: new sap.ui.commons.TextView().bindProperty("text","COMMENT"),
+                                         width: "200px",
+                                      sortProperty: "COMMENT",
+                                      filterProperty: "COMMENT"
+                                             });
+      */                                       
+                                             
+      oTableHbase.addColumn(colGby);	
+		
+		
+		//Initially sort the table
+        var sort2 = new sap.ui.model.Sorter("timestamp","Descending");
+    	oTableHbase.bindRows("/body/Row/0/Cell",sort2);   //  /body/Row/0
+        oTableHbase.sort("timestamp","Descending");
+        oTableHbase.setEditable(true);
+       
+       //Add Layout to Hbase Panel  
+       oPanelHbase.addContent(oTableHbase);
+         
+       
+  
+      oPanelHbase.placeAt("uiArea"); 
+
+
+
+	  /***************************************************
+        ON UPDATE  OF HANA TABLE
+      ***************************************************/
+	function updateService(Event) {
+		//var oModel = sap.ui.getCore().byId("view_comments").getController().oModel;   //idodataCRUD   VIEW ID
+		var index = Event.getSource().oParent.getIndex() ;  //?Why was is row index out by 2  when rows got more than 4?
+
+		var oEntry = {};
+		oEntry.Doc_Name = sap.ui.getCore().byId("__field0-col0-row"+index).getValue();
+		oEntry.Row = sap.ui.getCore().byId("__field1-col1-row"+index).getValue();
+		switch (Event.mParameters.id){
+			case "__field2-col2-row"+index:
+				oEntry.Free_Text = Event.mParameters.newValue; break;
+			case "__field3-col3-row"+index:
+				oEntry.Value = Event.mParameters.newValue; break;
+		}
+		
+		oEntry.Changed_by = "";
+	
+		var vDT =  new Date().getTime(); 
+		oEntry.Changed_at = "/Date(" + vDT + ")/" ; 
+		
+		var oParams = {};
+		oParams.fnSuccess = function(){ alert("Update successful");};
+		oParams.fnError = function(){alert("Update failed");};
+		oParams.bMerge = true;
+		oModel.setHeaders({"content-type" : "application/json;charset=utf-8"});				
+		oModel.update("/DOCUMENTS(Doc_Name='"+oEntry.Doc_Name+"',Row="+oEntry.Row+")", oEntry, oParams);
+		
+		//onRowSelect(Event);
+		
+	}
+
+
+	  /***************************************************
+        ON ROW SELECT
+      ***************************************************/
+ 		function onRowSelect (oEvent){
+ 		    var oContext = oEvent.getParameter("rowContext");  
+ 		    var Doc_Name = oContext.getProperty("Doc_Name");
+ 		    var Row = oContext.getProperty("Row");
+ 		 
+ 		
+		    var HbaseJSON =  "HbaseTableLog.xsjs?key=" +"DOCUMENTS:"+ Doc_Name + ":" + Row;
+		    HbaseJSON += '&versions=10';  //Returns last 10 changes for a field
+	                            
+		     jQuery.ajax({
+				      url: HbaseJSON,
+				      method: 'GET',
+				      dataType: 'json',
+				      //async: false, // Switch of ASync
+				      success: setHbaseDetails,
+				      error: function(xhr, textStatus, errorThrown) {return;} }); 
+		 } 
+        
+         function setHbaseDetails(collection) {
+           oModelHbase.setData(collection);
+           //oTableHbase.bindContext("/body/Row/0");
+         }
+         
+         
+        
+
+        
+</script>
+
+</head>
+<body class='sapUiBody'>
+    <div id="uiArea"></div>
+</body>
+</html>

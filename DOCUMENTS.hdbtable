@@ -1,0 +1,10 @@
+table.schemaName = "HADOOP";
+table.tableType = COLUMNSTORE;
+table.columns = [ {name = "Doc_Name"; sqlType = VARCHAR; nullable = false; length = 20;comment = "Document";},
+{name = "Row"; sqlType = INTEGER; nullable = false;comment = "Row";},
+{name = "Free_Text"; sqlType = NVARCHAR; nullable = true; length = 20;defaultValue = "Defaultvalue";comment = "FreeText";},
+{name = "Value"; sqlType = DECIMAL; nullable = true; precision = 12; scale = 3;comment = "Value";},
+{name = "Changed_by"; sqlType = NVARCHAR; nullable = true; length = 20;defaultValue = "Defaultvalue";comment = "User";},
+{name = "Changed_at"; sqlType = TIMESTAMP; comment = "Last Updated"; }
+];
+table.primaryKey.pkcolumns = ["Doc_Name", "Row"]; 

@@ -1,0 +1,10 @@
+
+import = [ 
+{ table = "HanaHbase::DOCUMENTS";
+schema = "HADOOP";
+file = "HanaHbase:DOCUMENTS.csv";
+header = false;
+delimField = ";";
+}
+
+]; 

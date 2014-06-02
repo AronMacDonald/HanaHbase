@@ -1,0 +1,5 @@
+service {
+	 "HADOOP"."HanaHbase::DOCUMENTS"  as "DOCUMENTS"
+	   update using "HanaHbase:DOCUMENTS_table_exits.xsjslib::update_instead"
+	   ;
+}

@@ -1,0 +1,9 @@
+host = "zz.zzz.zz.zz";
+port = 20550; 
+description = "Hbase stargate connection";
+useSSL = false;
+authType = none;
+useProxy = false;
+proxyHost = "";
+proxyPort = 0;
+timeout = 0;

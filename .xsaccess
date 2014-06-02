@@ -1,0 +1,5 @@
+{
+    "prevent_xsrf": true,
+    "authentication": { "method": "Basic"},
+    "exposed": true
+}
